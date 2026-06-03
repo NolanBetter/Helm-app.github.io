@@ -3,7 +3,6 @@
 <meta charset="UTF-8"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Helm">
-<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#080810">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -708,7 +707,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--t1);font-
 const K={ious:'helm_ious',sett:'helm_sett',tasks:'helm_tasks',cats:'helm_cats',subs:'helm_subs',budget:'helm_budget',vehs:'helm_vehs',ob:'helm_onboarded',svcts:'helm_svc_tasks'};
 const ACCENTS=[{n:'Green',h:'#00E676'},{n:'Blue',h:'#3D8BFF'},{n:'Purple',h:'#BF5AF2'},{n:'Orange',h:'#FF9500'},{n:'Red',h:'#FF453A'},{n:'Teal',h:'#32D4DE'},{n:'Pink',h:'#FF375F'}];
 const CAT_COLORS=['#FF6B6B','#FF9500','#FFD60A','#30D158','#64D2FF','#BF5AF2','#FF375F','#8E8E93'];
-const DFLT={theme:'dark',accent:'#00E676',sugEn:true,afPer:true,afAmt:true,manDate:false,svcSugEn:true,syncEnabled:false,syncCode:null,modules:{ious:true,budget:true,vehicles:true,subs:true}};
+const DFLT={theme:'dark',accent:'#00E676',sugEn:true,afPer:true,afAmt:true,manDate:false,svcSugEn:true,syncEnabled:false,syncCode:null,syncName:'',syncMembers:{},syncModules:{ious:false,budget:false,vehicles:false,subs:false},modules:{ious:true,budget:true,vehicles:true,subs:true}};
 const CYC_LABELS={monthly:'Monthly',yearly:'Yearly',quarterly:'Quarterly',weekly:'Weekly'};
 const CYC_MO={monthly:1,yearly:1/12,quarterly:1/3,weekly:52/12};
 const TAB_SCREENS=['home','ious','budget','vehs','subs','settings'];
@@ -756,10 +755,18 @@ function startListener(){
 function stopListener(){if(_sseSource){_sseSource.close();_sseSource=null;}clearInterval(_pollTimer);_pollTimer=null;}
 function applyRemote(d){
   _rxRemote=true;let changed=false;
-  try{if(d.vehs){const v=JSON.parse(d.vehs);helmVehs=v;helmVehs.forEach(v2=>{if(!v2.history)v2.history=[];});localStorage.setItem(K.vehs,JSON.stringify(helmVehs));changed=true;}}catch(e){}
-  try{if(d.ious){ious=JSON.parse(d.ious);localStorage.setItem(K.ious,JSON.stringify(ious));changed=true;}}catch(e){}
-  try{if(d.subs){subs=JSON.parse(d.subs);localStorage.setItem(K.subs,JSON.stringify(subs));changed=true;}}catch(e){}
-  try{if(d.budget){const b=JSON.parse(d.budget);bData={categories:b.categories||[],transactions:b.transactions||[]};localStorage.setItem(K.budget,JSON.stringify(bData));changed=true;}}catch(e){}
+  const sm=sett.syncModules||DFLT.syncModules;
+  try{if(sm.vehicles&&d.vehs){const v=JSON.parse(d.vehs);helmVehs=v;helmVehs.forEach(v2=>{if(!v2.history)v2.history=[];});localStorage.setItem(K.vehs,JSON.stringify(helmVehs));changed=true;}}catch(e){}
+  try{if(sm.ious&&d.ious){ious=JSON.parse(d.ious);localStorage.setItem(K.ious,JSON.stringify(ious));changed=true;}}catch(e){}
+  try{if(sm.subs&&d.subs){subs=JSON.parse(d.subs);localStorage.setItem(K.subs,JSON.stringify(subs));changed=true;}}catch(e){}
+  try{if(sm.budget&&d.budget){const b=JSON.parse(d.budget);bData={categories:b.categories||[],transactions:b.transactions||[]};localStorage.setItem(K.budget,JSON.stringify(bData));changed=true;}}catch(e){}
+  // Merge member list
+  if(d.members){
+    const merged={...(sett.syncMembers||{}),...d.members};
+    merged[getDevId()]={name:sett.syncName||'Unknown',lastSeen:Date.now()};
+    sett.syncMembers=merged;saveSett();
+    if(curTab==='settings')renderSettings();
+  }
   _rxRemote=false;
   if(!changed)return;
   if(curTab==='vehs')renderVehs();else if(curTab==='ious')renderIouList();
@@ -771,8 +778,15 @@ function schedulePush(){
   if(!syncOn())return;
   clearTimeout(_syncTimer);
   _syncTimer=setTimeout(()=>{
-    const vNoPhoto=helmVehs.map(v=>({...v,photo:null}));
-    const payload={vehs:JSON.stringify(vNoPhoto),ious:JSON.stringify(ious),subs:JSON.stringify(subs),budget:JSON.stringify(bData),did:getDevId(),ts:Date.now()};
+    const sm=sett.syncModules||DFLT.syncModules;
+    const myDid=getDevId();
+    const myMembers={...(sett.syncMembers||{})};
+    myMembers[myDid]={name:sett.syncName||'Unknown',lastSeen:Date.now()};
+    const payload={did:myDid,name:sett.syncName||'',ts:Date.now(),members:myMembers};
+    if(sm.vehicles){const vNoPhoto=helmVehs.map(v=>({...v,photo:null}));payload.vehs=JSON.stringify(vNoPhoto);}
+    if(sm.ious)payload.ious=JSON.stringify(ious);
+    if(sm.subs)payload.subs=JSON.stringify(subs);
+    if(sm.budget)payload.budget=JSON.stringify(bData);
     const str=JSON.stringify(payload);
     if(str===_lastPushStr)return;
     _lastPushStr=str;
@@ -780,18 +794,31 @@ function schedulePush(){
   },900);
 }
 function createFamily(){
+  const nameInp=document.getElementById('sync-name-inp');
+  const name=(nameInp?nameInp.value.trim():'')||'User';
+  sett.syncName=name;
   const ch='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let code='';
   for(let i=0;i<6;i++)code+=ch[Math.floor(Math.random()*ch.length)];
-  sett.syncCode=code;sett.syncEnabled=true;saveSett();
-  startListener();schedulePush();renderSettings();helmToast('Family created! Code: '+code);
+  sett.syncCode=code;sett.syncEnabled=true;
+  sett.syncMembers={};sett.syncMembers[getDevId()]={name,lastSeen:Date.now()};
+  saveSett();startListener();schedulePush();renderSettings();
+  helmToast('Family created! Code: '+code);
 }
 function joinFamily(){
+  const nameInp=document.getElementById('sync-name-inp');
+  const name=(nameInp?nameInp.value.trim():'')||'User';
   const inp=document.getElementById('sync-inp');if(!inp)return;
   const code=inp.value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
   if(code.length<4){helmToast('Enter the family code first');return;}
-  sett.syncCode=code;sett.syncEnabled=true;saveSett();
-  startListener();
-  fetch(FB+'/families/'+code+'.json').then(r=>r.json()).then(d=>{if(d)applyRemote(d);}).catch(()=>{});
+  sett.syncName=name;sett.syncCode=code;sett.syncEnabled=true;
+  sett.syncMembers={};sett.syncMembers[getDevId()]={name,lastSeen:Date.now()};
+  saveSett();startListener();
+  fetch(FB+'/families/'+code+'.json').then(r=>r.json()).then(d=>{
+    if(d){
+      if(d.members){const m={...d.members};m[getDevId()]={name,lastSeen:Date.now()};sett.syncMembers=m;saveSett();}
+      applyRemote(d);
+    }
+  }).catch(()=>{});
   renderSettings();helmToast('Joined! Pulling family data\u2026');
 }
 function leaveFamily(){
@@ -841,7 +868,10 @@ function doSaveNewBCat(){
 /* ═══ STORAGE ═══ */
 function loadAll(){
   try{ious=JSON.parse(localStorage.getItem(K.ious)||'[]')}catch(e){ious=[];}
-  try{const s=JSON.parse(localStorage.getItem(K.sett)||'{}');sett={...DFLT,...s};sett.modules={...DFLT.modules,...(s.modules||{})};}catch(e){}
+  try{const s=JSON.parse(localStorage.getItem(K.sett)||'{}');sett={...DFLT,...s};sett.modules={...DFLT.modules,...(s.modules||{})};sett.syncModules={...DFLT.syncModules,...(s.syncModules||{})};sett.syncMembers={...DFLT.syncMembers,...(s.syncMembers||{})};
+  // Migration: if already in a family before per-module toggles existed, keep all on
+  if(s.syncEnabled&&s.syncCode&&!s.syncModules)sett.syncModules={ious:true,budget:true,vehicles:true,subs:true};
+  }catch(e){}
   try{tasks=JSON.parse(localStorage.getItem(K.tasks)||'[]')}catch(e){tasks=[];}
   try{iouCats=JSON.parse(localStorage.getItem(K.cats)||'[]')}catch(e){iouCats=[];}
   try{subs=JSON.parse(localStorage.getItem(K.subs)||'[]')}catch(e){subs=[];}
@@ -1496,6 +1526,48 @@ function renderSubs(){
   el.querySelectorAll('.scrd').forEach(c=>c.addEventListener('click',()=>openSubSht(c.dataset.sid)));
 }
 
+function tSince(ts){if(!ts)return'';var m=Math.floor((Date.now()-ts)/60000);if(m<2)return'just now';if(m<60)return m+'m ago';var h=Math.floor(m/60);if(h<24)return h+'h ago';return Math.floor(h/24)+'d ago';}
+function buildSyncHtml(){
+  var sm=sett.syncModules||DFLT.syncModules;
+  var myDid=getDevId();
+  var members=sett.syncMembers||{};
+  var memberList=Object.entries(members);
+  if(sett.syncEnabled&&sett.syncCode){
+    var membersHtml='';
+    memberList.forEach(function(entry){
+      var did=entry[0],m=entry[1];
+      var initial=esc(((m.name||'?')[0]||'?').toUpperCase());
+      var nameHtml=esc(m.name||'Unknown')+(did===myDid?' <span style="font-size:11px;color:var(--t3)">(you)</span>':'');
+      var timeHtml=(m.lastSeen&&did!==myDid)?'<div style="font-size:11px;color:var(--t3)">'+tSince(m.lastSeen)+'</div>':'';
+      membersHtml+='<div style="display:flex;align-items:center;gap:9px;padding:8px 12px;background:var(--s3);border-radius:11px">'
+        +'<div style="width:32px;height:32px;border-radius:50%;background:var(--ac-bg);border:1.5px solid var(--ac-bord);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--ac);flex-shrink:0">'+initial+'</div>'
+        +'<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600">'+nameHtml+'</div>'+timeHtml+'</div>'
+        +'</div>';
+    });
+    return '<div class="st-sect">'
+      +'<div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">'
+      +'<div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:var(--ac);flex-shrink:0;display:inline-block"></span><span style="font-size:14px;font-weight:600;flex:1">Syncing with family</span><button id="st-leave-sync" style="font-size:12px;font-weight:600;color:var(--red);background:none;border:none;cursor:pointer;font-family:inherit">Leave</button></div>'
+      +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t3)">Family code — share this</div>'
+      +'<div style="display:flex;gap:8px;align-items:center"><div style="flex:1;background:var(--s3);border-radius:11px;padding:11px 0;font-family:\'DM Mono\',monospace;font-size:26px;font-weight:500;letter-spacing:5px;text-align:center;color:var(--ac)">'+sett.syncCode+'</div><button id="st-copy-code" style="padding:11px 16px;border-radius:11px;background:var(--s3);border:1px solid var(--b2);color:var(--t1);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Copy</button></div>'
+      +'<div style="display:flex;gap:8px;align-items:center"><input type="text" id="sync-name-update" class="f-inp" placeholder="Your name…" value="'+esc(sett.syncName||'')+'" style="-webkit-user-select:text;user-select:text;flex:1;height:40px" autocomplete="off" autocorrect="off" autocapitalize="words"><button id="st-save-name" style="padding:0 14px;height:40px;border-radius:var(--rs);background:var(--s3);border:1px solid var(--b2);color:var(--t1);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap">Update</button></div>'
+      +(memberList.length?'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t3)">Members ('+memberList.length+')</div><div style="display:flex;flex-direction:column;gap:6px">'+membersHtml+'</div>':'')
+      +'</div>'
+      +'<div style="border-top:1px solid var(--b1);padding:10px 16px 8px">'
+      +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:8px">What to sync</div>'
+      +'<div class="st-row" style="border:none;padding:7px 0"><div class="st-rl"><div class="st-rt">Vehicles</div></div>'+togH('tog-sm-vehs',sm.vehicles)+'</div>'
+      +'<div class="st-row" style="border:none;padding:7px 0"><div class="st-rl"><div class="st-rt">IOUs</div></div>'+togH('tog-sm-ious',sm.ious)+'</div>'
+      +'<div class="st-row" style="border:none;padding:7px 0"><div class="st-rl"><div class="st-rt">Budget</div></div>'+togH('tog-sm-budget',sm.budget)+'</div>'
+      +'<div class="st-row" style="border-bottom:none;padding:7px 0"><div class="st-rl"><div class="st-rt">Subscriptions</div></div>'+togH('tog-sm-subs',sm.subs)+'</div>'
+      +'</div></div>';
+  }
+  return '<div class="st-sect"><div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">'
+    +'<div><div class="f-lbl">Your name</div><input type="text" id="sync-name-inp" class="f-inp" placeholder="e.g. Dad, Mom, Nolan…" value="'+esc(sett.syncName||'')+'" autocomplete="off" autocorrect="off" autocapitalize="words" style="-webkit-user-select:text;user-select:text"></div>'
+    +'<button class="save-btn" id="st-create-sync" style="margin-top:0;height:46px;font-size:15px">Create Family Sync</button>'
+    +'<div style="text-align:center;font-size:12px;color:var(--t3)">— or join an existing family —</div>'
+    +'<div style="display:flex;gap:8px"><input type="text" id="sync-inp" class="f-inp" placeholder="Family code (e.g. HELM42)" style="-webkit-user-select:text;user-select:text;flex:1;height:46px;letter-spacing:2px;text-transform:uppercase" autocomplete="off" autocorrect="off" autocapitalize="characters" maxlength="6"><button id="st-join-sync" style="padding:0 18px;height:46px;border-radius:var(--rs);background:var(--s3);border:1px solid var(--b2);color:var(--t1);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap">Join</button></div>'
+    +'</div></div>';
+}
+
 /* ═══ RENDER SETTINGS ═══ */
 function togH(id,on){return`<div class="tog${on?' on':''}" id="${id}"><div class="tok"></div></div>`;}
 const delICO=()=>`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/></svg>`;
@@ -1524,32 +1596,7 @@ function renderSettings(){
   <div class="sec-lbl">IOU Categories</div><div class="st-sect">${catHtml}</div>
   <div class="sec-lbl">Budget Categories</div><div class="st-sect">${bCatHtml}</div>
   <div class="sec-lbl">Family Sync</div>
-  ${sett.syncEnabled&&sett.syncCode?`
-  <div class="st-sect">
-    <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
-      <div style="display:flex;align-items:center;gap:8px">
-        <span style="width:8px;height:8px;border-radius:50%;background:var(--ac);display:inline-block;flex-shrink:0"></span>
-        <span style="font-size:14px;font-weight:600;flex:1">Syncing with family</span>
-        <button id="st-leave-sync" style="font-size:12px;font-weight:600;color:var(--red);background:none;border:none;cursor:pointer;font-family:inherit;padding:4px 0">Leave</button>
-      </div>
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t3)">Family code — share this</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <div style="flex:1;background:var(--s3);border-radius:11px;padding:11px 0;font-family:'DM Mono',monospace;font-size:26px;font-weight:500;letter-spacing:5px;text-align:center;color:var(--ac)">${sett.syncCode}</div>
-        <button id="st-copy-code" style="padding:11px 16px;border-radius:11px;background:var(--s3);border:1px solid var(--b2);color:var(--t1);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Copy</button>
-      </div>
-      <div style="font-size:12px;color:var(--t2);line-height:1.5">Each family member enters this code to share vehicles, IOUs, budget and subscriptions in real time.</div>
-    </div>
-  </div>`:
-  `<div class="st-sect">
-    <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
-      <button class="save-btn" id="st-create-sync" style="margin-top:0;height:46px;font-size:15px">Create Family Sync</button>
-      <div style="text-align:center;font-size:12px;color:var(--t3)">— or join an existing family —</div>
-      <div style="display:flex;gap:8px">
-        <input type="text" id="sync-inp" class="f-inp" placeholder="Enter code (e.g. HELM42)" style="flex:1;height:46px;letter-spacing:2px;text-transform:uppercase" autocomplete="off" autocorrect="off" autocapitalize="characters" maxlength="6">
-        <button id="st-join-sync" style="padding:0 18px;height:46px;border-radius:var(--rs);background:var(--s3);border:1px solid var(--b2);color:var(--t1);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap">Join</button>
-      </div>
-    </div>
-  </div>`}
+  ${buildSyncHtml()}
   <div class="sec-lbl">Date &amp; Time</div>
   <div class="st-sect"><div class="st-row"><div class="st-rl"><div class="st-rt">Allow manual date</div><div class="st-rs">Override date on new IOUs</div></div>${togH('tog-md',sett.manDate)}</div></div>
   <div class="sec-lbl">Data</div>
@@ -1571,8 +1618,25 @@ function renderSettings(){
   bind('st-join-sync',joinFamily);
   bind('st-leave-sync',leaveFamily);
   const cc=document.getElementById('st-copy-code');
-  if(cc)cc.addEventListener('click',()=>{
-    navigator.clipboard&&navigator.clipboard.writeText(sett.syncCode).then(()=>helmToast('Code copied!')).catch(()=>helmToast(sett.syncCode));
+  if(cc)cc.addEventListener('click',()=>{navigator.clipboard&&navigator.clipboard.writeText(sett.syncCode).then(()=>helmToast('Code copied!')).catch(()=>helmToast(sett.syncCode));});
+  const sn=document.getElementById('st-save-name');
+  if(sn)sn.addEventListener('click',()=>{
+    const inp=document.getElementById('sync-name-update');
+    const name=(inp?inp.value.trim():'')||'User';
+    sett.syncName=name;
+    if(!sett.syncMembers)sett.syncMembers={};
+    sett.syncMembers[getDevId()]={name,lastSeen:Date.now()};
+    saveSett();schedulePush();renderSettings();helmToast('Name updated!');
+  });
+  // Per-module sync toggles
+  const smBinds=[['tog-sm-vehs','vehicles'],['tog-sm-ious','ious'],['tog-sm-budget','budget'],['tog-sm-subs','subs']];
+  smBinds.forEach(([id,key])=>{
+    const el=document.getElementById(id);
+    if(el)el.addEventListener('click',()=>{
+      if(!sett.syncModules)sett.syncModules={...DFLT.syncModules};
+      sett.syncModules[key]=!sett.syncModules[key];
+      saveSett();schedulePush();renderSettings();
+    });
   });
   document.querySelectorAll('.ac-sw').forEach(sw=>sw.addEventListener('click',()=>{sett.accent=sw.dataset.hex;saveSett();applyTheme();renderSettings();}));
   document.querySelectorAll('.stk-ed[data-stid]').forEach(b=>b.addEventListener('click',()=>openEtSht(b.dataset.stid)));
