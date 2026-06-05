@@ -688,14 +688,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--t1);font-
 </div>
 
 <!-- TAB BAR: Home|IOUs|Budget|Vehicles|Subs|Settings -->
-<div id="tab-bar">
-  <button class="tb on" data-t="home" id="tb-home"><div class="tb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg></div><span>Home</span></button>
-  <button class="tb" data-t="ious" id="tb-ious"><div class="tb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span class="tb-bdg" id="bdg-ious"></span></div><span>IOUs</span></button>
-  <button class="tb" data-t="budget" id="tb-budget"><div class="tb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg><span class="tb-bdg" id="bdg-budget"></span></div><span>Budget</span></button>
-  <button class="tb" data-t="vehs" id="tb-vehs"><div class="tb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16,8 20,8 23,11 23,16 16,16 16,8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><span class="tb-bdg" id="bdg-vehs"></span></div><span>Vehicles</span></button>
-  <button class="tb" data-t="subs" id="tb-subs"><div class="tb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23,4 23,10 17,10"/><polyline points="1,20 1,14 7,14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg><span class="tb-bdg" id="bdg-subs"></span></div><span>Subs</span></button>
-  <button class="tb" data-t="more" id="tb-more"><div class="tb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></div><span>More</span></button>
-</div>
+<div id="tab-bar"><!-- dynamic --></div>
 
 <button id="fab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
 <div id="bulk"><button id="blk-x"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button><button id="blk-ok">Mark as Paid</button></div>
@@ -771,11 +764,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--t1);font-
 const K={ious:'helm_ious',sett:'helm_sett',tasks:'helm_tasks',cats:'helm_cats',subs:'helm_subs',budget:'helm_budget',vehs:'helm_vehs',ob:'helm_onboarded',svcts:'helm_svc_tasks',home:'helm_home',warr:'helm_warr',shop:'helm_shop'};
 const ACCENTS=[{n:'Green',h:'#00E676'},{n:'Blue',h:'#3D8BFF'},{n:'Purple',h:'#BF5AF2'},{n:'Orange',h:'#FF9500'},{n:'Red',h:'#FF453A'},{n:'Teal',h:'#32D4DE'},{n:'Pink',h:'#FF375F'}];
 const CAT_COLORS=['#FF6B6B','#FF9500','#FFD60A','#30D158','#64D2FF','#BF5AF2','#FF375F','#8E8E93'];
-const DFLT={theme:'dark',accent:'#00E676',sugEn:true,afPer:true,afAmt:true,manDate:false,svcSugEn:true,syncEnabled:false,syncCode:null,syncName:'',syncMembers:{},syncModules:{ious:false,budget:false,vehicles:false,subs:false},modules:{ious:true,budget:true,vehicles:true,subs:true,home:false,warranties:false,shopping:false},bioEnabled:false,bioCredId:null};
+const DFLT={theme:'dark',accent:'#00E676',sugEn:true,afPer:true,afAmt:true,manDate:false,svcSugEn:true,syncEnabled:false,syncCode:null,syncName:'',syncMembers:{},syncModules:{ious:false,budget:false,vehicles:false,subs:false,home:false,warr:false,shop:false},modules:{ious:true,budget:true,vehicles:true,subs:true,home:false,warranties:false,shopping:false},bioEnabled:false,bioCredId:null};
 const CYC_LABELS={monthly:'Monthly',yearly:'Yearly',quarterly:'Quarterly',weekly:'Weekly'};
 const CYC_MO={monthly:1,yearly:1/12,quarterly:1/3,weekly:52/12};
 const TAB_SCREENS=['home','ious','budget','vehs','subs'];
-const APP_VERSION=12;
+const APP_VERSION=13;
 const UPDATE_BASE='https://www.nolangraysongames.com/Helm-app';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
@@ -834,6 +827,9 @@ function applyRemote(d){
   try{if(sm.vehicles&&d.vehs){const v=JSON.parse(d.vehs);helmVehs=v;helmVehs.forEach(v2=>{if(!v2.history)v2.history=[];});localStorage.setItem(K.vehs,JSON.stringify(helmVehs));changed=true;}}catch(e){}
   try{if(sm.ious&&d.ious){ious=JSON.parse(d.ious);localStorage.setItem(K.ious,JSON.stringify(ious));changed=true;}}catch(e){}
   try{if(sm.subs&&d.subs){subs=JSON.parse(d.subs);localStorage.setItem(K.subs,JSON.stringify(subs));changed=true;}}catch(e){}
+  try{if(sm.home&&d.home){homeAreas=JSON.parse(d.home);homeAreas.forEach(a=>{if(!a.history)a.history=[];});localStorage.setItem(K.home,JSON.stringify(homeAreas));changed=true;}}catch(e){}
+  try{if(sm.warr&&d.warr){warranties=JSON.parse(d.warr);localStorage.setItem(K.warr,JSON.stringify(warranties));changed=true;}}catch(e){}
+  try{if(sm.shop&&d.shop){shoppingLists=JSON.parse(d.shop);localStorage.setItem(K.shop,JSON.stringify(shoppingLists));changed=true;}}catch(e){}
   try{if(sm.budget&&d.budget){const b=JSON.parse(d.budget);bData={categories:b.categories||[],transactions:b.transactions||[]};localStorage.setItem(K.budget,JSON.stringify(bData));changed=true;}}catch(e){}
   // Merge member list
   if(d.members){
@@ -861,6 +857,9 @@ function schedulePush(){
     if(sm.vehicles){const vNoPhoto=helmVehs.map(v=>({...v,photo:null}));payload.vehs=JSON.stringify(vNoPhoto);}
     if(sm.ious)payload.ious=JSON.stringify(ious);
     if(sm.subs)payload.subs=JSON.stringify(subs);
+    if(sm.home)payload.home=JSON.stringify(homeAreas);
+    if(sm.warr)payload.warr=JSON.stringify(warranties);
+    if(sm.shop)payload.shop=JSON.stringify(shoppingLists);
     if(sm.budget)payload.budget=JSON.stringify(bData);
     const str=JSON.stringify(payload);
     if(str===_lastPushStr)return;
@@ -983,14 +982,11 @@ function applyTheme(){
 }
 function applyTabModules(){
   const m=sett.modules||{};
-  // Safety: if all 4 core tabs would be hidden, restore them
-  if(m.ious===false&&m.budget===false&&m.vehicles===false&&m.subs===false){
-    sett.modules.ious=true;sett.modules.budget=true;sett.modules.vehicles=true;sett.modules.subs=true;saveSett();
+  // Safety: if ALL modules are disabled, restore core defaults
+  if(!ALL_MODS.some(function(mod){return m[mod.key];})){
+    ['ious','budget','vehicles','subs'].forEach(function(k){sett.modules[k]=true;});saveSett();
   }
-  document.getElementById('tb-ious').style.display=m.ious!==false?'':'none';
-  document.getElementById('tb-budget').style.display=m.budget!==false?'':'none';
-  document.getElementById('tb-vehs').style.display=m.vehicles!==false?'':'none';
-  document.getElementById('tb-subs').style.display=m.subs!==false?'':'none';
+  renderTabBar();
 }
 
 /* FORMATTERS */
@@ -1121,13 +1117,12 @@ function getAlerts(){
 
 /* NAVIGATION */
 function goTab(t){
-  curTab=t;scrStack=[t];sel.clear();
-  document.querySelectorAll('.scr').forEach(el=>el.classList.remove('active','behind','above-bulk'));
+  _curNavScr=null;curTab=t;scrStack=[t];sel.clear();
+  document.querySelectorAll('.scr').forEach(function(el){el.classList.remove('active','behind','above-bulk');});
   document.getElementById('s-'+t).classList.add('active');
   curScr=t;
-  document.querySelectorAll('.tb').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   document.getElementById('tab-bar').classList.remove('hide');
-  document.getElementById('fab').classList.toggle('hide',t==='home'||t==='settings');
+  document.getElementById('fab').classList.toggle('hide',t==='home');
   const bulk=document.getElementById('bulk');bulk.classList.remove('show');
   if(t!=='ious')bulk.style.display='none';else bulk.style.display='';
   if(t==='home')renderHomeTab();
@@ -1135,7 +1130,7 @@ function goTab(t){
   else if(t==='budget')renderBudget();
   else if(t==='vehs')renderVehs();
   else if(t==='subs')renderSubs();
-  updateBadges();
+  renderTabBar();
   history.pushState({scr:t},'');
 }
 function goScr(scr){
@@ -1151,7 +1146,10 @@ function goScr(scr){
   history.pushState({scr},'');
 }
 function popScr(){
-  if(scrStack.length<=1){goTab(curTab);return;}
+  if(scrStack.length<=1){
+    if(_curNavScr){var mod=ALL_MODS.find(function(m){return m.scr===_curNavScr;});if(mod&&_navModScrs.includes(_curNavScr)){goNavModScr(mod);return;}}
+    _curNavScr=null;goTab(curTab);return;
+  }
   const curEl=document.getElementById('s-'+curScr);
   curEl.style.transition='transform .28s cubic-bezier(.25,.46,.45,.94)';
   curEl.style.transform='translateX(100%)';
@@ -1162,25 +1160,29 @@ function popScr(){
   if(prevEl){prevEl.classList.remove('behind');prevEl.classList.add('active');}
   curScr=prev;
   const FAB_SCREENS=['home-maint','home-area','ha-hist','warr','shop'];
-  if(TAB_SCREENS.includes(prev)){
+  if(_navModScrs.includes(prev)){
     document.getElementById('tab-bar').classList.remove('hide');
-    document.getElementById('fab').classList.toggle('hide',prev==='home'||prev==='settings');
+    document.getElementById('fab').classList.remove('hide');
+    var _nm=ALL_MODS.find(function(m){return m.scr===prev;});
+    if(_nm){if(_nm.key==='home')renderHomeMaint();else if(_nm.key==='warranties')renderWarranties();else if(_nm.key==='shopping')renderShopLists();}
+    renderTabBar();
+  } else if(TAB_SCREENS.includes(prev)){
+    document.getElementById('tab-bar').classList.remove('hide');
+    document.getElementById('fab').classList.toggle('hide',prev==='home');
     const bulk=document.getElementById('bulk');
     if(prev!=='ious'){bulk.classList.remove('show');bulk.style.display='none';}else bulk.style.display='';
-    updateBadges();
     if(prev==='home')renderHomeTab();
     else if(prev==='ious')renderIouList();
     else if(prev==='budget')renderBudget();
     else if(prev==='vehs')renderVehs();
     else if(prev==='subs')renderSubs();
+    renderTabBar();
   } else if(FAB_SCREENS.includes(prev)){
     document.getElementById('fab').classList.remove('hide');
-    // Re-render module screens when navigating back
     if(prev==='home-maint')renderHomeMaint();
     else if(prev==='home-area'&&curHomeAreaId)renderHomeAreaMaint(curHomeAreaId);
     else if(prev==='warr')renderWarranties();
     else if(prev==='shop')renderShopLists();
-
   } else {
     document.getElementById('fab').classList.add('hide');
   }
@@ -1189,7 +1191,7 @@ function popScr(){
 
 /* OVERLAY / SHEETS */
 function openSht(id){if(activeSht)document.getElementById(activeSht).classList.remove('show');activeSht=id;document.getElementById('ov').classList.add('show');document.getElementById(id).classList.add('show');}
-function closeSht(){if(activeSht){document.getElementById(activeSht).classList.remove('show');activeSht=null;}document.getElementById('ov').classList.remove('show');}
+function closeSht(){if(activeSht){document.getElementById(activeSht).classList.remove('show');activeSht=null;}document.getElementById('ov').classList.remove('show');renderTabBar();}
 
 function openDetSht(id){
   const o=byId(id);if(!o)return;
@@ -1674,7 +1676,10 @@ function buildSyncHtml(){
       +'<div class="st-row" style="border:none;padding:7px 0"><div class="st-rl"><div class="st-rt">Vehicles</div></div>'+togH('tog-sm-vehs',sm.vehicles)+'</div>'
       +'<div class="st-row" style="border:none;padding:7px 0"><div class="st-rl"><div class="st-rt">IOUs</div></div>'+togH('tog-sm-ious',sm.ious)+'</div>'
       +'<div class="st-row" style="border:none;padding:7px 0"><div class="st-rl"><div class="st-rt">Budget</div></div>'+togH('tog-sm-budget',sm.budget)+'</div>'
-      +'<div class="st-row" style="border-bottom:none;padding:7px 0"><div class="st-rl"><div class="st-rt">Subscriptions</div></div>'+togH('tog-sm-subs',sm.subs)+'</div>'
+      +'<div class="st-row" style="border:none;padding:7px 0"><div class="st-rl"><div class="st-rt">Subscriptions</div></div>'+togH('tog-sm-subs',sm.subs)+'</div>'
+      +(m.home?'<div class="st-row" style="border:none;padding:7px 0"><div class="st-rl"><div class="st-rt">Home Maintenance</div></div>'+togH('tog-sm-home',sm.home)+'</div>':'')
+      +(m.warranties?'<div class="st-row" style="border:none;padding:7px 0"><div class="st-rl"><div class="st-rt">Warranties</div></div>'+togH('tog-sm-warr',sm.warr)+'</div>':'')
+      +(m.shopping?'<div class="st-row" style="border-bottom:none;padding:7px 0"><div class="st-rl"><div class="st-rt">Shopping</div></div>'+togH('tog-sm-shop',sm.shop)+'</div>':'')
       +'</div></div>';
   }
   return '<div class="st-sect"><div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">'
@@ -1689,22 +1694,32 @@ function buildSyncHtml(){
 function openMoreSheet(){
   renderMoreSheet();
   openSht('more-sht');
-  document.querySelectorAll('.tb').forEach(b=>b.classList.toggle('on',b.dataset.t==='more'));
+  var mBtn=document.getElementById('tb-more');if(mBtn)mBtn.classList.add('on');
 }
 function renderMoreSheet(){
-  const m=sett.modules||{};
-  const SVG_GEAR=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`;
-  function moreItem(id,bgCol,iconHtml,label,sub){return`<div class="more-item" id="${id}"><div class="more-item-ico" style="background:${bgCol}">${iconHtml}</div><div class="more-item-info"><div class="more-item-lbl">${label}</div>${sub?`<div class="more-item-sub">${sub}</div>`:''}</div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="color:var(--t3);flex-shrink:0"><polyline points="9,18 15,12 9,6"/></svg></div>`;}
-  let rows=moreItem('more-settings','var(--s3)',SVG_GEAR,'Settings','Appearance, modules, sync');
-  if(m.home)rows+=moreItem('more-home','rgba(102,187,106,.15)',`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#66BB6A" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>`,'Home Maintenance',homeAreas.length+' area'+(homeAreas.length!==1?'s':''));
-  if(m.warranties)rows+=moreItem('more-warr','rgba(41,182,246,.15)',`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#29B6F6" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,'Warranties',warranties.length+' tracked');
-  if(m.shopping)rows+=moreItem('more-shop','rgba(191,90,242,.15)',`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#BF5AF2" stroke-width="2" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>`,'Shopping Lists',shoppingLists.reduce((n,l)=>n+l.items.filter(i=>!i.checked).length,0)+' items left');
-  const el=document.getElementById('more-content');
-  if(el)el.innerHTML=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--t3);margin-bottom:10px;padding:0 2px">MENU</div><div style="display:flex;flex-direction:column;gap:6px">${rows}</div>`;
-  document.getElementById('more-settings')?.addEventListener('click',()=>{closeSht();renderSettings();goScr('settings');});
-  document.getElementById('more-home')?.addEventListener('click',()=>{closeSht();renderHomeMaint();goScr('home-maint');});
-  document.getElementById('more-warr')?.addEventListener('click',()=>{closeSht();renderWarranties();goScr('warr');});
-  document.getElementById('more-shop')?.addEventListener('click',()=>{closeSht();renderShopLists();goScr('shop');});
+  const SVG_GEAR='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+  const MOD_META={
+    home:{bg:'rgba(102,187,106,.15)',ico:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#66BB6A" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',label:'Home Maintenance',sub:function(){return homeAreas.length+' area'+(homeAreas.length!==1?'s':'');}},
+    warranties:{bg:'rgba(41,182,246,.15)',ico:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#29B6F6" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',label:'Warranties',sub:function(){return warranties.length+' tracked';}},
+    shopping:{bg:'rgba(191,90,242,.15)',ico:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#BF5AF2" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>',label:'Shopping',sub:function(){return shoppingLists.reduce(function(n,l){return n+l.items.filter(function(i){return !i.checked;}).length;},0)+' items left';}},
+  };
+  function moreItem(id,bgCol,iconHtml,label,sub){return'<div class="more-item" id="'+id+'"><div class="more-item-ico" style="background:'+bgCol+'">'+iconHtml+'</div><div class="more-item-info"><div class="more-item-lbl">'+label+'</div>'+(sub?'<div class="more-item-sub">'+sub+'</div>':'')+'</div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="color:var(--t3);flex-shrink:0"><polyline points="9,18 15,12 9,6"/></svg></div>';}
+  var rows=moreItem('more-settings','var(--s3)',SVG_GEAR,'Settings','Appearance, modules, sync');
+  _navOverflowMods.forEach(function(mod){
+    var meta=MOD_META[mod.key];if(!meta)return;
+    rows+=moreItem('more-'+mod.key,meta.bg,meta.ico,meta.label,meta.sub());
+  });
+  var el=document.getElementById('more-content');
+  if(el)el.innerHTML='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--t3);margin-bottom:10px;padding:0 2px">MENU</div><div style="display:flex;flex-direction:column;gap:6px">'+rows+'</div>';
+  document.getElementById('more-settings')?.addEventListener('click',function(){closeSht();renderSettings();goScr('settings');});
+  _navOverflowMods.forEach(function(mod){
+    document.getElementById('more-'+mod.key)?.addEventListener('click',function(){
+      closeSht();
+      if(mod.key==='home'){renderHomeMaint();goScr('home-maint');}
+      else if(mod.key==='warranties'){renderWarranties();goScr('warr');}
+      else if(mod.key==='shopping'){renderShopLists();goScr('shop');}
+    });
+  });
 }
 
 /* ═══ RENDER SETTINGS ═══ */
@@ -1759,11 +1774,8 @@ function renderSettings(){
   bind('tog-aa',()=>{sett.afAmt=!sett.afAmt;saveSett();renderSettings();});
   bind('tog-md',()=>{sett.manDate=!sett.manDate;saveSett();renderSettings();});
   bind('tog-svcsug',()=>{sett.svcSugEn=!sett.svcSugEn;saveSett();renderSettings();});
-  bind('tog-m-ious',()=>{sett.modules.ious=sett.modules.ious===false?true:false;saveSett();applyTabModules();renderSettings();});
-  bind('tog-m-budget',()=>{sett.modules.budget=sett.modules.budget===false?true:false;saveSett();applyTabModules();renderSettings();});
-  bind('tog-m-vehicles',()=>{sett.modules.vehicles=sett.modules.vehicles===false?true:false;saveSett();applyTabModules();renderSettings();});
-  bind('tog-m-subs',()=>{sett.modules.subs=sett.modules.subs===false?true:false;saveSett();applyTabModules();renderSettings();});
-  ['home','warranties','shopping'].forEach(function(mod){bind('tog-m-'+mod,function(){sett.modules[mod]=!sett.modules[mod];saveSett();renderSettings();renderHomeTab();});}); 
+  function toggleMod(k){sett.modules[k]=!sett.modules[k];applyTabModules();saveSett();renderSettings();renderHomeTab();}
+  ['ious','budget','vehicles','subs','home','warranties','shopping'].forEach(function(k){bind('tog-m-'+k,function(){toggleMod(k);});});
   bind('tog-bio',function(){if(!sett.bioEnabled)enableBio();});
   const bioCur=document.querySelector('[id="sett-cnt"] .st-row [style*="color:var(--ac)"]');
   if(sett.bioEnabled){const bioRow=document.querySelector('[id="sett-cnt"]');if(bioRow){const rows=bioRow.querySelectorAll('.st-row');rows.forEach(function(r){if(r.textContent.includes('Biometric Lock')){r.style.cursor='pointer';r.addEventListener('click',function(){helmConfirm('Disable Biometric Lock','Remove biometric lock from Helm?','Disable',true,function(){sett.bioEnabled=false;sett.bioCredId=null;saveSett();renderSettings();helmToast('Biometric lock disabled');});});}});}}
@@ -1785,7 +1797,7 @@ function renderSettings(){
     saveSett();schedulePush();renderSettings();helmToast('Name updated!');
   });
   // Per-module sync toggles
-  const smBinds=[['tog-sm-vehs','vehicles'],['tog-sm-ious','ious'],['tog-sm-budget','budget'],['tog-sm-subs','subs']];
+  const smBinds=[['tog-sm-vehs','vehicles'],['tog-sm-ious','ious'],['tog-sm-budget','budget'],['tog-sm-subs','subs'],['tog-sm-home','home'],['tog-sm-warr','warr'],['tog-sm-shop','shop']];
   smBinds.forEach(([id,key])=>{
     const el=document.getElementById(id);
     if(el)el.addEventListener('click',()=>{
@@ -2044,10 +2056,7 @@ document.addEventListener('click',e=>{
   else if(a==='paid'){e.stopPropagation();markPaidWithUndo(id);}
   else if(a==='person'){e.stopPropagation();openPerson(name);}
 });
-document.querySelectorAll('.tb').forEach(b=>b.addEventListener('click',()=>{
-  if(b.dataset.t==='more')openMoreSheet();
-  else goTab(b.dataset.t);
-}));
+// tab clicks now wired in renderTabBar()
 document.getElementById('fab').addEventListener('click',()=>{
   if(curScr==='home-maint')openAddHomeArea();
   else if(curScr==='home-area')openAddHomeMaint(curHomeAreaId);
@@ -2169,6 +2178,71 @@ document.getElementById('bca-cx').addEventListener('click',closeSht);
 document.getElementById('bca-sv').addEventListener('click',doSaveNewBCat);
 /* ═══ LAUNCH ═══ */
 
+
+/* ═══ DYNAMIC NAV BAR ═══ */
+const _ICO={
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>',
+  ious:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+  budget:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>',
+  vehicles:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16,8 20,8 23,11 23,16 16,16 16,8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
+  subs:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23,4 23,10 17,10"/><polyline points="1,20 1,14 7,14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
+  home_maint:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
+  warranties:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+  shopping:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>',
+  more:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>'
+};
+const ALL_MODS=[
+  {key:'ious',label:'IOUs',scr:'ious',type:'tab',badge:'ious'},
+  {key:'budget',label:'Budget',scr:'budget',type:'tab',badge:'budget'},
+  {key:'vehicles',label:'Vehicles',scr:'vehs',type:'tab',badge:'vehs'},
+  {key:'subs',label:'Subs',scr:'subs',type:'tab',badge:'subs'},
+  {key:'home',label:'Home',scr:'home-maint',type:'scr'},
+  {key:'warranties',label:'Warranty',scr:'warr',type:'scr'},
+  {key:'shopping',label:'Shopping',scr:'shop',type:'scr'},
+];
+let _curNavScr=null,_navModScrs=[],_navOverflowMods=[];
+function renderTabBar(){
+  const m=sett.modules||{};
+  const enabled=ALL_MODS.filter(function(mod){return m[mod.key];});
+  const inNav=enabled.slice(0,4);
+  _navModScrs=inNav.filter(function(mod){return mod.type==='scr';}).map(function(mod){return mod.scr;});
+  _navOverflowMods=enabled.slice(4);
+  const tb=document.getElementById('tab-bar');if(!tb)return;
+  const homeOn=(curTab==='home'&&!_curNavScr);
+  const moreOn=(!_curNavScr&&curScr==='settings')||(_curNavScr&&!_navModScrs.includes(_curNavScr));
+  let h='<button class="tb'+(homeOn?' on':'')+'" data-t="home" id="tb-home"><div class="tb-ico">'+_ICO.home+'</div><span>Home</span></button>';
+  inNav.forEach(function(mod){
+    var ico=mod.key==='home'?_ICO.home_maint:mod.key==='warranties'?_ICO.warranties:mod.key==='shopping'?_ICO.shopping:(_ICO[mod.key]||'');
+    var active=(mod.type==='tab')?(curTab===mod.scr):(_curNavScr===mod.scr);
+    var badge=mod.badge?'<span class="tb-bdg" id="bdg-'+mod.badge+'"></span>':'';
+    h+='<button class="tb'+(active?' on':'')+'" data-t="'+mod.scr+'" id="tb-'+mod.key+'"><div class="tb-ico">'+ico+badge+'</div><span>'+mod.label+'</span></button>';
+  });
+  h+='<button class="tb'+(moreOn?' on':'')+'" data-t="more" id="tb-more"><div class="tb-ico">'+_ICO.more+'</div><span>More</span></button>';
+  tb.innerHTML=h;
+  tb.querySelectorAll('.tb').forEach(function(b){b.addEventListener('click',function(){
+    var t=b.dataset.t;
+    if(t==='more'){openMoreSheet();return;}
+    if(t==='home'){goTab('home');return;}
+    var mod=ALL_MODS.find(function(m){return m.scr===t;});
+    if(!mod)return;
+    if(mod.type==='tab')goTab(t);else goNavModScr(mod);
+  });});
+  updateBadges();
+}
+function goNavModScr(mod){
+  _curNavScr=mod.scr;scrStack=[mod.scr];curScr=mod.scr;sel.clear();
+  document.querySelectorAll('.scr').forEach(function(el){el.classList.remove('active','behind','above-bulk');});
+  var el=document.getElementById('s-'+mod.scr);if(el)el.classList.add('active');
+  document.getElementById('tab-bar').classList.remove('hide');
+  document.getElementById('fab').classList.remove('hide');
+  document.getElementById('bulk').classList.remove('show');
+  document.getElementById('bulk').style.display='none';
+  if(mod.key==='home')renderHomeMaint();
+  else if(mod.key==='warranties')renderWarranties();
+  else if(mod.key==='shopping')renderShopLists();
+  renderTabBar();
+  history.pushState({scr:mod.scr},'');
+}
 /* ═══ HOME MAINTENANCE ═══ */
 const areaById=id=>homeAreas.find(a=>a.id===id);
 function addHomeArea(name,notes){homeAreas.push({id:uid(),name:name.trim(),notes:(notes||'').trim(),maintenance:[],history:[]});saveHome();}
@@ -2387,7 +2461,7 @@ async function initSplash(){
   setTimeout(function(){
     document.getElementById('splash').classList.add('gone');
     if(isFirst){document.getElementById('onboarding').classList.add('show');renderObAccRow();}
-    else{document.getElementById('main').classList.add('show');applyTabModules();goTab('home');}
+    else{document.getElementById('main').classList.add('show');applyTabModules();goTab('home');renderTabBar();}
   },560);
 }
 
