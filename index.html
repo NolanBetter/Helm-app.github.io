@@ -753,6 +753,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--t1);font-
 /* ─── PENDING UPDATE CHECK (runs before everything) ─── */
 (function(){
   try{
+    // Android WebView loads from file:// — native MainActivity handles updates, not JS
+    if(location.protocol==='file:'){
+      localStorage.removeItem('helm_pending_update');
+      localStorage.removeItem('helm_last_dl');
+      return;
+    }
     var p=localStorage.getItem('helm_pending_update');
     if(p){
       localStorage.removeItem('helm_pending_update');
@@ -2451,6 +2457,8 @@ function factoryReset(){
 /* ═══ SPLASH & UPDATE ═══ */
 function spStatus(msg){var el=document.getElementById('sp-status');if(el){el.style.opacity='0';setTimeout(function(){el.textContent=msg;el.style.opacity='1';},150);}}
 async function doUpdateCheck(){
+  // Android WebView (file://) — updates handled silently by native app, not JS
+  if(location.protocol==='file:'){spStatus('v'+APP_VERSION+' \u2014 Helm');return false;}
   spStatus('Checking for updates...');
   try{
     var vRes=await fetch(UPDATE_BASE+'/version.json?t='+Date.now(),{cache:'no-cache'});
